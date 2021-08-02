@@ -69,6 +69,7 @@ class AuditlogModelRegistry:
         model: ModelBase = None,
         include_fields: Optional[List[str]] = None,
         exclude_fields: Optional[List[str]] = None,
+        mask_fields: Optional[List[str]] = None,
         mapping_fields: Optional[Dict[str, str]] = None,
         mask_fields: Optional[List[str]] = None,
         m2m_fields: Optional[Collection[str]] = None,
@@ -94,6 +95,8 @@ class AuditlogModelRegistry:
             include_fields = []
         if exclude_fields is None:
             exclude_fields = []
+        if mask_fields is None:
+            mask_fields = []
         if mapping_fields is None:
             mapping_fields = {}
         if mask_fields is None:
@@ -117,6 +120,7 @@ class AuditlogModelRegistry:
             self._registry[cls] = {
                 "include_fields": include_fields,
                 "exclude_fields": exclude_fields,
+                "mask_fields": mask_fields,
                 "mapping_fields": mapping_fields,
                 "mask_fields": mask_fields,
                 "m2m_fields": m2m_fields,
@@ -169,6 +173,7 @@ class AuditlogModelRegistry:
         return {
             "include_fields": list(self._registry[model]["include_fields"]),
             "exclude_fields": list(self._registry[model]["exclude_fields"]),
+            "mask_fields": list(self._registry[model]["mask_fields"]),
             "mapping_fields": dict(self._registry[model]["mapping_fields"]),
             "mask_fields": list(self._registry[model]["mask_fields"]),
         }

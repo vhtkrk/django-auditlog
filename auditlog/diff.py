@@ -84,8 +84,7 @@ def mask_str(value: str) -> str:
     :return: The masked version of the string.
     :rtype: str
     """
-    mask_limit = int(len(value) / 2)
-    return "*" * mask_limit + value[mask_limit:]
+    return "<redacted>"
 
 
 def model_instance_diff(old, new, fields_to_check=None):
