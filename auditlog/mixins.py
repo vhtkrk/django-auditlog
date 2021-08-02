@@ -48,7 +48,7 @@ class LogEntryAdminMixin:
     resource_url.short_description = "Resource"
 
     def msg_short(self, obj):
-        if obj.action == LogEntry.Action.DELETE:
+        if obj.action == LogEntry.Action.DELETE or obj.action == LogEntry.Action.VIEW:
             return ""  # delete
         changes = json.loads(obj.changes)
         s = "" if len(changes) == 1 else "s"
@@ -61,6 +61,8 @@ class LogEntryAdminMixin:
     msg_short.short_description = "Changes"
 
     def msg(self, obj):
+        if obj.action == LogEntry.Action.DELETE or obj.action == LogEntry.Action.VIEW:
+            return ""  # delete
         changes = json.loads(obj.changes)
 
         atom_changes = {}

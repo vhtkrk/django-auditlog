@@ -37,8 +37,9 @@ class LogEntryManager(models.Manager):
         """
         changes = kwargs.get("changes", None)
         pk = self._get_pk_value(instance)
+        action = kwargs.get("action", None)
 
-        if changes is not None:
+        if action is not None and (changes is not None or action is LogEntry.Action.VIEW):
             kwargs.setdefault(
                 "content_type", ContentType.objects.get_for_model(instance)
             )
@@ -55,9 +56,9 @@ class LogEntryManager(models.Manager):
             if callable(get_additional_data):
                 kwargs.setdefault("additional_data", get_additional_data())
 
-            # Delete log entries with the same pk as a newly created model.
-            # This should only be necessary when an pk is used twice.
-            if kwargs.get("action", None) is LogEntry.Action.CREATE:
+            # Delete log entries with the same pk as a newly created model. This should only be necessary when an pk is
+            # used twice.
+            if action is LogEntry.Action.CREATE:
                 if (
                     kwargs.get("object_id", None) is not None
                     and self.filter(
@@ -303,19 +304,21 @@ class LogEntry(models.Model):
 
     class Action:
         """
-        The actions that Auditlog distinguishes: creating, updating and deleting objects. Viewing objects
-        is not logged. The values of the actions are numeric, a higher integer value means a more intrusive
-        action. This may be useful in some cases when comparing actions because the ``__lt``, ``__lte``,
-        ``__gt``, ``__gte`` lookup filters can be used in queries.
+        The actions that Auditlog distinguishes: creating, updating and deleting objects. Viewing objects is not logged by default.
+        The values of the actions are numeric, a higher integer value means a more intrusive action. This may be useful
+        in some cases when comparing actions because the ``__lt``, ``__lte``, ``__gt``, ``__gte`` lookup filters can be
+        used in queries.
 
         The valid actions are :py:attr:`Action.CREATE`, :py:attr:`Action.UPDATE` and :py:attr:`Action.DELETE`.
         """
 
-        CREATE = 0
-        UPDATE = 1
-        DELETE = 2
+        VIEW   = 0
+        CREATE = 1
+        UPDATE = 2
+        DELETE = 3
 
         choices = (
+            (VIEW, _("view")),
             (CREATE, _("create")),
             (UPDATE, _("update")),
             (DELETE, _("delete")),
@@ -366,7 +369,9 @@ class LogEntry(models.Model):
         verbose_name_plural = _("log entries")
 
     def __str__(self):
-        if self.action == self.Action.CREATE:
+        if self.action == self.Action.VIEW:
+            fstring = _("Viewed {repr:s}")
+        elif self.action == self.Action.CREATE:
             fstring = _("Created {repr:s}")
         elif self.action == self.Action.UPDATE:
             fstring = _("Updated {repr:s}")
