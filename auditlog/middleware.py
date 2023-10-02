@@ -1,7 +1,6 @@
-import contextlib
+from django.utils.functional import SimpleLazyObject
 
 from auditlog.context import set_actor
-
 
 class AuditlogMiddleware:
     """
@@ -32,8 +31,15 @@ class AuditlogMiddleware:
 
     def __call__(self, request):
         remote_addr = self._get_remote_addr(request)
+
+        # https://github.com/jazzband/django-auditlog/issues/115#issuecomment-1539262735
+        # DRF populates request.user only later in the views, rather than in middleware.
+        # Accessing request.user here directly would lead to user being null.
+        # Wrapping the user in a lazy object here cleanly solves this
+        # because it won't be accessed until the request does have the correct user set.
+        user = SimpleLazyObject(lambda: getattr(request, "user", None))
         
-        context = set_actor(actor=getattr(request, "user"), remote_addr=remote_addr)
+        context = set_actor(actor=user, remote_addr=remote_addr)
 
         with context:
             return self.get_response(request)
