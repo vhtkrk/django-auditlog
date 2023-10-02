@@ -54,7 +54,7 @@ def _set_actor(user, sender, instance, signal_duid, **kwargs):
     else:
         if signal_duid != auditlog["signal_duid"]:
             return
-        if sender == LogEntry and instance.actor is None:
+        if sender == LogEntry and instance.actor is None and user.is_authenticated:
             instance.actor = user
 
         instance.remote_addr = auditlog["remote_addr"]
